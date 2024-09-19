@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve } from 'node:path'
 import type { ModuleNode, Plugin, ResolvedConfig } from 'vite'
 import { createVirtualModuleCode } from './clientSide'
 import { getFilesFromPath } from './files'
@@ -85,14 +85,18 @@ export default function Layout(userOptions: UserOptions = {}): Plugin {
         path = normalizePath(path)
 
         if (pagesDirs.length === 0 ||
-            pagesDirs.some(dir => path.startsWith(dir)) ||
-            layoutDirs.some(dir => path.startsWith(dir))) {
+            pagesDirs.some(dir => match(dir)) ||
+            layoutDirs.some(dir => match(dir))) {
           debug('reload', path)
           const module = moduleGraph.getModuleById(MODULE_ID_VIRTUAL)
           reloadModule(module)
         }
-      }
 
+        function match(dir: string){
+          return path.startsWith(dir) || normalizePath(resolve(config.root, path)).startsWith(dir)
+        }
+      }
+      
       watcher.on('add', (path) => {
         updateVirtualModule(path)
       })
